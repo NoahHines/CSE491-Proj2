@@ -31,7 +31,7 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
     fid1 = fopen(filepath1,'rt');
     for i=1:numMinutiae1
         thisline = fgetl(fid1);
-        %now check whether the string in thisline is a "word", and store it if it is.
+        % Check whether the string in thisline is a "word", and store it if it is.
         values=strsplit(thisline,'	');
         x1(i)=str2double(values(1));
         y1(i)=str2double(values(2));
@@ -41,7 +41,7 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
     fid2 = fopen(filepath2,'rt');
     for i=1:numMinutiae2
         thisline = fgetl(fid2);
-        %now check whether the string in thisline is a "word", and store it if it is.
+        % Check whether the string in thisline is a "word", and store it if it is.
         values=strsplit(thisline,'	');
         x2(i)=str2double(values(1));
         y2(i)=str2double(values(2));
@@ -62,32 +62,43 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
             % 1
             deltaX = x2(j) - x1(i);
             deltaY = y2(j) - y1(i);
-            deltaTheta = wrapToPi(theta2(j) - theta1(i));
+            deltaTheta = deg2rad(theta2(j) - theta1(i));
             
             % apply deltaX, deltaY, and deltaTheta to all points in 1
             % The new 1, P', is...
             %2
             for k=1:numMinutiae1
-                x3(k) = ( (x1(k)-x1(i)) * cos(deltaTheta) + ( y1(k)-y1(i) ) * sin(deltaTheta) + x1(i) + deltaX);
-                y3(k) = ( -(x1(k)-x1(i)) * sin(deltaTheta) + ( y1(k)-y1(i) ) * cos(deltaTheta) + y1(i) + deltaY);
+                x3(k) = ( (x1(k)-x1(i)* cos(deltaTheta)) + ( y1(k)-y1(i) * sin(deltaTheta)) + x1(i) + deltaX);
+                y3(k) = ( -(x1(k)-x1(i)*sin(deltaTheta)) + ( y1(k)-y1(i) * cos(deltaTheta)) + y1(i) + deltaY);
             end
             
             % 3
             corrPoints = 0;
-            for k=1:numMinutiae1
-               if (abs(x1(k) - x3(k)) <= tolerance)
-                   if (abs(y1(k) - y3(k)) <= tolerance)
-                       % disp(['y1(k): ' num2str(y1(k)) ', y3(k): ' num2str(y3(k))]);
-                       corrPoints = corrPoints + 1;
-                   end
-               end
+            
+            
+            for k =  1:numMinutiae2
+            
+                singlePoint = 0;
+                index = 0;
+                for l = 1:numMinutiae1
+                    x1Point = x1(k);
+                    x2Point = x3(l);
+                    y1Point = y1(k);
+                    y2Point = y3(l);
+                    dist = sqrt( (x2Point-x1Point)^2 + (y2Point-y1Point)^2);
+                    
+                    if (dist < tolerance)
+                        corrPoints = corrPoints + 1;
+                    end
+                end
+                if (corrPoints > nMax)
+                    nMax = corrPoints;
+                    finalDeltaX = deltaX;
+                    finalDeltaY = deltaY;
+                    finalDeltaTheta = deltaTheta;
+                end
             end
-            if (corrPoints > nMax)
-                finalDeltaX=deltaX;
-                finalDeltaY=deltaY;
-                finalDeltaTheta=deltaTheta;
-                nMax = corrPoints;
-            end
+            %pos = pos+1;
         end
     end
 

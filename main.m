@@ -7,7 +7,7 @@ disp('Part 1');
 
 
 disp('Part 2');
-tolerance = 7.0;
+tolerance = 12.0;
 
 disp(runRansac('minutiae/user001_1.minpoints', 'minutiae/user001_2.minpoints', tolerance));
 
