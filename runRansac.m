@@ -1,3 +1,7 @@
+% RunRansac!
+% Sorry in advance for all of the file reading overhead. I was having a
+% hard time with matlab and file reading.
+
 function[output] = runRansac(filepath1, filepath2, tolerance)
     
     fid1 = fopen(filepath1,'rt');
@@ -20,12 +24,12 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
     fclose(fid2);
 
     % Initialize matrices for x,y,theta values for both minutiae sets
-    x1 = zeros(1,numMinutiae1);
-    y1 = zeros(1,numMinutiae1);
-    theta1 = zeros(1, numMinutiae1);
-    x2 = zeros(1,numMinutiae2);
-    y2 = zeros(1,numMinutiae2);
-    theta2 = zeros(1, numMinutiae2);
+    Px = zeros(1,numMinutiae1);
+    Py = zeros(1,numMinutiae1);
+    Pt = zeros(1, numMinutiae1);
+    Qx = zeros(1,numMinutiae2);
+    Qy = zeros(1,numMinutiae2);
+    Qt = zeros(1, numMinutiae2);
 
     % Fill x,y,theta matrices with data from minutiae sets
     fid1 = fopen(filepath1,'rt');
@@ -33,9 +37,9 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
         thisline = fgetl(fid1);
         % Check whether the string in thisline is a "word", and store it if it is.
         values=strsplit(thisline,'	');
-        x1(i)=str2double(values(1));
-        y1(i)=str2double(values(2));
-        theta1(i)=str2double(values(3));
+        Px(i)=str2double(values(1));
+        Py(i)=str2double(values(2));
+        Pt(i)=str2double(values(3));
     end
     fclose(fid1);
     fid2 = fopen(filepath2,'rt');
@@ -43,16 +47,16 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
         thisline = fgetl(fid2);
         % Check whether the string in thisline is a "word", and store it if it is.
         values=strsplit(thisline,'	');
-        x2(i)=str2double(values(1));
-        y2(i)=str2double(values(2));
-        theta2(i)=str2double(values(3));
+        Qx(i)=str2double(values(1));
+        Qy(i)=str2double(values(2));
+        Qt(i)=str2double(values(3));
     end
     fclose(fid2);
         
-    nMax = 0;
-    x3=x1;
-    y3=y1;
+    x3=Px;
+    y3=Py;
     
+    nMax = 0;
     finalDeltaX=0;
     finalDeltaY=0;
     finalDeltaTheta=0;
@@ -60,51 +64,49 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
     for i=1:numMinutiae1
         for j=1:numMinutiae2
             % 1
-            deltaX = x2(j) - x1(i);
-            deltaY = y2(j) - y1(i);
-            deltaTheta = deg2rad(theta2(j) - theta1(i));
+            deltaX = Qx(j) - Px(i);
+            deltaY = Qy(j) - Py(i);
+            deltaTheta = (Qt(j) - Pt(i))*3.141592654/180;
             
             % apply deltaX, deltaY, and deltaTheta to all points in 1
             % The new 1, P', is...
             %2
             for k=1:numMinutiae1
-                x3(k) = ( (x1(k)-x1(i)* cos(deltaTheta)) + ( y1(k)-y1(i) * sin(deltaTheta)) + x1(i) + deltaX);
-                y3(k) = ( -(x1(k)-x1(i)*sin(deltaTheta)) + ( y1(k)-y1(i) * cos(deltaTheta)) + y1(i) + deltaY);
+                x3(k) = ( (Px(k)-Px(i))* cos(deltaTheta) + ( (Py(k)-Py(i))*sin(deltaTheta)) + Px(i) + deltaX);
+                y3(k) = (-(Px(k)-Px(i))*sin(deltaTheta) + ( (Py(k)-Py(i))*cos(deltaTheta)) + Py(i) + deltaY);
             end
-            
+
+
             % 3
-            corrPoints = 0;
             
-            
-            for k =  1:numMinutiae2
-            
-                singlePoint = 0;
-                index = 0;
-                for l = 1:numMinutiae1
-                    x1Point = x1(k);
-                    x2Point = x3(l);
-                    y1Point = y1(k);
-                    y2Point = y3(l);
-                    dist = sqrt( (x2Point-x1Point)^2 + (y2Point-y1Point)^2);
-                    
-                    if (dist < tolerance)
-                        corrPoints = corrPoints + 1;
-                    end
-                end
-                if (corrPoints > nMax)
-                    nMax = corrPoints;
-                    finalDeltaX = deltaX;
-                    finalDeltaY = deltaY;
-                    finalDeltaTheta = deltaTheta;
+            % Calculate distance
+            for k =  1:numMinutiae1
+                for l = 1:numMinutiae2
+                    dist(k,l) = sqrt( (x3(k)-Qx(l))^2 + (y3(k)-Qy(l))^2 );
                 end
             end
-            %pos = pos+1;
+            corrPoints = 0;
+            [mini ind] = min(dist(:));
+            while (mini <= tolerance)
+                k = mod(ind-1, numMinutiae1)+1;
+                l = ceil(ind/numMinutiae1);
+                corrPoints = corrPoints + 1;
+                dist(k,:)=10000;
+                dist(:,l)=10000;
+                [mini ind] = min(dist(:));
+            end
+            if (corrPoints > nMax)
+                nMax = corrPoints;
+                finalDeltaX = deltaX;
+                finalDeltaY = deltaY;
+                finalDeltaTheta = deltaTheta;
+            end
         end
     end
 
     matchScore = (nMax*nMax)/(numMinutiae1*numMinutiae2);
     
-    output = ([filepath1 ' ' filepath2 ' ' num2str(finalDeltaX) ' ' num2str(finalDeltaY) ' ' num2str(finalDeltaTheta) ' ' num2str(nMax)]);
+    output = ([filepath1 ' ' filepath2 ' ' num2str(finalDeltaX) ' ' num2str(finalDeltaY) ' ' num2str(finalDeltaTheta) ' ' num2str(nMax) ' Match Score: ' num2str(matchScore)]);
     
     % disp(['Match Score: ' num2str(matchScore)]);
 
