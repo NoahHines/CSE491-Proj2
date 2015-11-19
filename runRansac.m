@@ -95,6 +95,7 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
                 dist(:,l)=10000;
                 [mini ind] = min(dist(:));
             end
+            % Choose max number of corresponding points for reporting
             if (corrPoints > nMax)
                 nMax = corrPoints;
                 finalDeltaX = deltaX;

@@ -1,6 +1,6 @@
 function[] = computeOrientationField(filename)
     % Uncomment 'close all' to restore all images each run
-    close all;
+    % close all;
     
     % Load image
     original_image = double(imread(['images/' filename '.gif']));
@@ -27,8 +27,6 @@ function[] = computeOrientationField(filename)
             
             % calculate Sigma(i) Sigma(j) 2 Gx(i,j) Gy(i,j)... numerator
             % calculate Sigma(i) Sigma(j) Gx^2(i,j)-Gy^2(i,j)...
-            % denominator
-
             for i = 1:9
                 for j = 1:9
                     numerator = numerator + 2*Gx(y+j-1, x+i-1)*Gy(y+j-1, x+i-1);
@@ -37,9 +35,6 @@ function[] = computeOrientationField(filename)
             end
             
             % The final calculation within each 9x9 block...
-            
-            %numerator
-            %denominator
             
             theta = 0.5 * double(atan2(numerator, denominator)) + 3.141592654/2.0;
             orientation_image(y,x) = theta;
