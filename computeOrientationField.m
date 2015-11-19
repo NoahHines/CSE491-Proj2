@@ -1,3 +1,6 @@
+% ComputerOrientationField
+% by Noah Hines
+
 function[] = computeOrientationField(filename)
     % Uncomment 'close all' to restore all images each run
     % close all;
@@ -33,13 +36,10 @@ function[] = computeOrientationField(filename)
                     denominator = denominator + double( Gx(y+j-1, x+i-1)*Gx(y+j-1, x+i-1) ) - double( Gy(y+j-1, x+i-1)*Gy(y+j-1, x+i-1) );
                 end
             end
-            
             % The final calculation within each 9x9 block...
-            
             theta = 0.5 * double(atan2(numerator, denominator)) + 3.141592654/2.0;
             orientation_image(y,x) = theta;
         end
     end
-    
+    % Special thanks to Dr. Ross for this function
     drawOrientation(original_image, orientation_image, 8);
-    

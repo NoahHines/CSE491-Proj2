@@ -1,5 +1,5 @@
 % GenerateRidgePattern!
-
+% by Noah Hines
 
 function[] = generateRidgePattern(theta)
     close all;

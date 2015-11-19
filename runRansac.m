@@ -1,4 +1,5 @@
 % RunRansac!
+% by Noah Hines
 % Sorry in advance for all of the file reading overhead. I was having a
 % hard time with matlab and file reading.
 
@@ -67,7 +68,6 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
             deltaX = Qx(j) - Px(i);
             deltaY = Qy(j) - Py(i);
             deltaTheta = (Qt(j) - Pt(i))*3.141592654/180;
-            
             % apply deltaX, deltaY, and deltaTheta to all points in 1
             % The new 1, P', is...
             %2
@@ -75,10 +75,7 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
                 x3(k) = ( (Px(k)-Px(i))* cos(deltaTheta) + ( (Py(k)-Py(i))*sin(deltaTheta)) + Px(i) + deltaX);
                 y3(k) = (-(Px(k)-Px(i))*sin(deltaTheta) + ( (Py(k)-Py(i))*cos(deltaTheta)) + Py(i) + deltaY);
             end
-
-
             % 3
-            
             % Calculate distance
             for k =  1:numMinutiae1
                 for l = 1:numMinutiae2
@@ -104,11 +101,6 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
             end
         end
     end
-
     matchScore = (nMax*nMax)/(numMinutiae1*numMinutiae2);
-    
-    output = ([filepath1 ' ' filepath2 ' ' num2str(finalDeltaX) ' ' num2str(finalDeltaY) ' ' num2str(finalDeltaTheta) ' ' num2str(nMax) ' Match Score: ' num2str(matchScore)]);
-    
-    % disp(['Match Score: ' num2str(matchScore)]);
-
+    output = ([filepath1 ' ' filepath2 ' ' num2str(finalDeltaX) ' ' num2str(finalDeltaY) ' ' num2str(finalDeltaTheta) ' ' num2str(nMax) ' matchScore:' num2str(matchScore)]);
 end
