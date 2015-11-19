@@ -18,11 +18,11 @@ function[] = generateRidgePattern(theta)
         
         %fft
         fftImg = fft2(image);
-        fftImg = fftshift(log(abs(fftImg))+1);
-        imwrite(fftImg,['output/ridgePatterns/fftridgepattern-' num2str(theta(i)) '.jpg']);
+        fftImg = fftshift(log(abs(fftImg) + 1));
+        
+        % imwrite does not seem to work with normalized images!?
+        % imwrite(fftImg,['output/ridgePatterns/fftridgepattern-' num2str(theta(i)) '.png'],'bitdepth',16);
+        % instead I will manually use imshow and save.
+        % imshow(fftImg, []); %Uncomment for manual image saving
     end
 end
-    
-    
-    
-    

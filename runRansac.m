@@ -112,7 +112,3 @@ function[output] = runRansac(filepath1, filepath2, tolerance)
     % disp(['Match Score: ' num2str(matchScore)]);
 
 end
-    
-    
-    
-    
